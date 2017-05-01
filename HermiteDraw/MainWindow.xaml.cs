@@ -28,9 +28,13 @@ namespace HermiteDraw
         List<PointF> pointT;
         bool draw;
 
-        Pen yellow = new Pen(Color.Yellow);
+        Pen previewPBlue = new Pen(Color.FromArgb(120,37,24,209));
+        Pen pBlue = new Pen(Color.FromArgb(255, 37, 24, 209));
+        Pen previewPRed = new Pen(Color.FromArgb(120, 255, 0, 0));
         Pen pRed = new Pen(Color.Red);
+        Brush previewBRed = new SolidBrush(Color.FromArgb(120, 255, 0, 0));
         Brush red = new SolidBrush(Color.Red);
+        Brush previewBGreen = new SolidBrush(Color.FromArgb(120, 0, 255, 0));
         Brush green = new SolidBrush(Color.Green);
 
         public MainWindow()
@@ -46,8 +50,23 @@ namespace HermiteDraw
 
         private void Canvas_Paint(object sender, PaintEventArgs e)
         {
+
+            //TODO: vonalakat átlehessen kötni másik ponthoz. a módosítandó pontok legyenek mindig preview színűek.
+            //TODO: második kattintásra a T pont mozgatása.
+            //TODO: színválasztó implementálása
+            //TODO: vonalakra lehessen duplán kattintani. legyen egyértelmű hogy kivan jelölve. színváltoztatás, vastagság állítása(görgővel is).
+            //TODO: pontok törlése.
+            //TODO: save-load.
             g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+            if(draw && pointP.Count==1)
+            {
+                g.DrawLine(pRed, pointP[0], pointT[0]);
+                g.FillRectangle(red, pointP[0].X - 3, pointP[0].Y - 3, 6, 6);
+                g.FillRectangle(green, pointT[0].X - 3, pointT[0].Y - 3, 6, 6);
+
+            }
 
             if(draw)
             {
@@ -63,15 +82,33 @@ namespace HermiteDraw
                     {
                         t += h;
                         ph2 = HermitePoint(t, pointP[i - 1], pointP[i], pointT[i - 1], pointT[i]);
-                        g.DrawLine(yellow, ph1, ph2);
+                        if(previewPoint && i==foundP)
+                        {
+                            g.DrawLine(previewPBlue, ph1, ph2);
+                        }
+                        else
+                            g.DrawLine(pBlue, ph1, ph2);
                         ph1 = ph2;
                     }
-                    g.DrawLine(pRed, pointP[i-1], pointT[i-1]);
-                    g.DrawLine(pRed, pointP[i], pointT[i]);
-                    g.FillRectangle(red, pointP[i-1].X - 3, pointP[i-1].Y - 3, 6, 6);
-                    g.FillRectangle(red, pointP[i].X - 3, pointP[i].Y - 3, 6, 6);
-                    g.FillRectangle(green, pointT[i-1].X - 3, pointT[i-1].Y - 3, 6, 6);
-                    g.FillRectangle(green, pointT[i].X - 3, pointT[i].Y - 3, 6, 6);
+                    if (previewPoint && i == foundP)//preview color, temporary
+                    {
+                        g.DrawLine(previewPRed, pointP[i - 1], pointT[i - 1]);
+                        g.DrawLine(previewPRed, pointP[i], pointT[i]);
+                        g.FillRectangle(previewBRed, pointP[i - 1].X - 3, pointP[i - 1].Y - 3, 6, 6);
+                        g.FillRectangle(previewBRed, pointP[i].X - 3, pointP[i].Y - 3, 6, 6);
+                        g.FillRectangle(previewBGreen, pointT[i - 1].X - 3, pointT[i - 1].Y - 3, 6, 6);
+                        g.FillRectangle(previewBGreen, pointT[i].X - 3, pointT[i].Y - 3, 6, 6);
+                    }
+                    else
+                    {
+
+                        g.DrawLine(pRed, pointP[i - 1], pointT[i - 1]);
+                        g.DrawLine(pRed, pointP[i], pointT[i]);
+                        g.FillRectangle(red, pointP[i - 1].X - 3, pointP[i - 1].Y - 3, 6, 6);
+                        g.FillRectangle(red, pointP[i].X - 3, pointP[i].Y - 3, 6, 6);
+                        g.FillRectangle(green, pointT[i - 1].X - 3, pointT[i - 1].Y - 3, 6, 6);
+                        g.FillRectangle(green, pointT[i].X - 3, pointT[i].Y - 3, 6, 6);
+                    }
                 }
             }
             
@@ -94,27 +131,30 @@ namespace HermiteDraw
                 {
                     found = 1;
                     foundP = i;
+                    previewPoint = true;
                     break;
                 }
                 else if(Find(pointT[i],mouse,5))//checks if user clicked on a T point
                 {
                     found = 2;
                     foundT=i;
+                    previewPoint = true;
                     break;
                 }
             }
-            if(found==-1)//creating new P and T point
-            {
-                pointP.Add(mouse);
-                pointT.Add(new PointF(mouse.X - 30, mouse.Y - 100));
-                if (pointT.Count > 1) draw = true;
-                found = 0;
-            }
+            //if(previewPoint)//creating new P and T point
+            //{
+            //    pointP.Add(mouse);
+            //    pointT.Add(new PointF(mouse.X - 30, mouse.Y - 100));
+            //    if (pointT.Count > 1) draw = true;
+            //    found = 0;
+            //}
            
         }
 
         private void Canvas_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            //moving existing points
             if (found == 1)
             {
                 PointF mouse = new PointF(e.X, e.Y);
@@ -125,11 +165,17 @@ namespace HermiteDraw
                 PointF mouse = new PointF(e.X, e.Y);
                 pointT[foundT] = mouse;
             }
-            else if (found ==0 )
+            //else if (found ==0 )
+            //{
+            //    PointF mouse = new PointF(e.X, e.Y);
+            //    pointP[pointP.Count-1] = mouse;
+            //    pointT[pointT.Count-1] = new PointF(mouse.X - 30, mouse.Y - 100);
+            //}
+           else if(previewPoint)
             {
                 PointF mouse = new PointF(e.X, e.Y);
-                pointP[pointP.Count-1] = mouse;
-                pointT[pointT.Count-1] = new PointF(mouse.X - 30, mouse.Y - 100);
+                pointP[pointP.Count - 1] = mouse;
+                pointT[pointT.Count - 1] = new PointF(mouse.X - 30, mouse.Y - 30);
             }
                 Canvas.Refresh();
             }
@@ -140,6 +186,7 @@ namespace HermiteDraw
             found = -1;
             foundP = -1;
             foundT =- 1;
+            previewPoint = false;
         }
 
 
@@ -173,6 +220,18 @@ namespace HermiteDraw
                 (float)(H0(t) * p0.X + H1(t) * p1.X + H2(t) * t0.X + H3(t) * t1.X),
                 (float)(H0(t) * p0.Y + H1(t) * p1.Y + H2(t) * t0.Y + H3(t) * t1.Y));
         }
+
+        bool previewPoint = false;
+        private void HermiteButton_Click(object sender, RoutedEventArgs e)
+        {
+            previewPoint = true;
+            draw = true;
+            pointP.Add(new PointF());
+            pointT.Add(new PointF());
+            foundP = pointP.Count - 1;
+            
+        }
     }
+
     
 }
