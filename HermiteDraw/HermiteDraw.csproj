@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HermiteDrawControlLibrary">
-      <HintPath>..\HermiteDrawControlLibrary\obj\Debug\HermiteDrawControlLibrary.dll</HintPath>
+      <HintPath>..\..\KomputerGrafika\HermiteDraw\HermiteDrawControlLibrary\obj\Debug\HermiteDrawControlLibrary.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

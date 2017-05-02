@@ -182,13 +182,20 @@ namespace HermiteDraw
 
         private void Canvas_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-          
             found = -1;
             foundP = -1;
             foundT =- 1;
-            
             previewPoint = false;
-           
+
+            if (pointP.Count == 1 && !previewTPoint)//this automatically creates a second T and P point after finalizing the first points, without having to press the add the button.
+            {
+                previewPoint = true;
+                previewTPoint = true;
+                pointP.Add(new PointF());
+                pointT.Add(new PointF());
+                foundP = pointP.Count - 1;
+
+            }  
         }
 
 

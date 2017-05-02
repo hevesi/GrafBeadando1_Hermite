@@ -14,16 +14,16 @@
             <MenuItem Header="File"></MenuItem>
         </Menu>
         <DockPanel DockPanel.Dock="Left" Width="100">
-            <Button x:Name="HermiteButton" DockPanel.Dock="Top" Height="30"></Button>
+            <Button x:Name="HermiteButton" DockPanel.Dock="Top" Height="30" Click="HermiteButton_Click"></Button>
         </DockPanel>
-        
-               
+
+
         <Border BorderBrush="Black" BorderThickness="1">
             <WindowsFormsHost>
                 <wf:PictureBox x:Name="Canvas" Paint="Canvas_Paint" MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp"/>
             </WindowsFormsHost>
-           
+
         </Border>
-        
+
     </DockPanel>
 </Window>
