@@ -52,7 +52,7 @@ namespace HermiteDraw
         {
 
             //TODO: vonalakat átlehessen kötni másik ponthoz. a módosítandó pontok legyenek mindig preview színűek.
-            //TODO: második kattintásra a T pont mozgatása.
+            //TODO: második kattintásra a T pont mozgatása. DONE
             //TODO: színválasztó implementálása
             //TODO: vonalakra lehessen duplán kattintani. legyen egyértelmű hogy kivan jelölve. színváltoztatás, vastagság állítása(görgővel is).
             //TODO: pontok törlése.
@@ -124,31 +124,30 @@ namespace HermiteDraw
         //index of T in the list
         private void Canvas_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            PointF mouse = new PointF(e.X, e.Y);
-            for(int i =0;i<pointP.Count;i++)
+
+            if (!previewPoint)
             {
-                if(Find(pointP[i],mouse,5))//checks if user clicked on a P point
+                previewTPoint = false;
+                PointF mouse = new PointF(e.X, e.Y);
+                for (int i = 0; i < pointP.Count; i++)
                 {
-                    found = 1;
-                    foundP = i;
-                    previewPoint = true;
-                    break;
-                }
-                else if(Find(pointT[i],mouse,5))//checks if user clicked on a T point
-                {
-                    found = 2;
-                    foundT=i;
-                    previewPoint = true;
-                    break;
+                    if (Find(pointP[i], mouse, 5))//checks if user clicked on a P point
+                    {
+                        found = 1;
+                        foundP = i;
+                        previewPoint = true;
+                        break;
+                    }
+                    else if (Find(pointT[i], mouse, 5))//checks if user clicked on a T point
+                    {
+                        found = 2;
+                        foundT = i;
+                        previewPoint = true;
+                        break;
+                    }
                 }
             }
-            //if(previewPoint)//creating new P and T point
-            //{
-            //    pointP.Add(mouse);
-            //    pointT.Add(new PointF(mouse.X - 30, mouse.Y - 100));
-            //    if (pointT.Count > 1) draw = true;
-            //    found = 0;
-            //}
+            
            
         }
 
@@ -165,17 +164,17 @@ namespace HermiteDraw
                 PointF mouse = new PointF(e.X, e.Y);
                 pointT[foundT] = mouse;
             }
-            //else if (found ==0 )
-            //{
-            //    PointF mouse = new PointF(e.X, e.Y);
-            //    pointP[pointP.Count-1] = mouse;
-            //    pointT[pointT.Count-1] = new PointF(mouse.X - 30, mouse.Y - 100);
-            //}
+          
            else if(previewPoint)
             {
                 PointF mouse = new PointF(e.X, e.Y);
                 pointP[pointP.Count - 1] = mouse;
                 pointT[pointT.Count - 1] = new PointF(mouse.X - 30, mouse.Y - 30);
+            }
+            else if(previewTPoint && !previewPoint )
+            {
+                PointF mouse = new PointF(e.X, e.Y);
+                pointT[pointT.Count - 1] = mouse;
             }
                 Canvas.Refresh();
             }
@@ -183,10 +182,13 @@ namespace HermiteDraw
 
         private void Canvas_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+          
             found = -1;
             foundP = -1;
             foundT =- 1;
+            
             previewPoint = false;
+           
         }
 
 
@@ -222,9 +224,11 @@ namespace HermiteDraw
         }
 
         bool previewPoint = false;
+        bool previewTPoint = false;
         private void HermiteButton_Click(object sender, RoutedEventArgs e)
         {
             previewPoint = true;
+            previewTPoint = true;
             draw = true;
             pointP.Add(new PointF());
             pointT.Add(new PointF());
