@@ -53,7 +53,8 @@ namespace HermiteDraw
 
             //TODO: vonalakat átlehessen kötni másik ponthoz. a módosítandó pontok legyenek mindig preview színűek.
             //TODO: második kattintásra a T pont mozgatása. DONE
-            //TODO: színválasztó implementálása
+            //TODO: színválasztó implementálása.DONE
+            //TODO: zoom
             //TODO: vonalakra lehessen duplán kattintani. legyen egyértelmű hogy kivan jelölve. színváltoztatás, vastagság állítása(görgővel is).
             //TODO: pontok törlése.
             //TODO: save-load.
@@ -72,6 +73,7 @@ namespace HermiteDraw
             {
                 for (int i = 1; i < pointP.Count; i++)
                 {
+                    
                     double a = 0;
                     double b = 1;
                     double h = (b - a) / 100;
@@ -84,10 +86,10 @@ namespace HermiteDraw
                         ph2 = HermitePoint(t, pointP[i - 1], pointP[i], pointT[i - 1], pointT[i]);
                         if(previewPoint && i==foundP)
                         {
-                            g.DrawLine(previewPBlue, ph1, ph2);
+                            g.DrawLine(new Pen(Color.FromArgb(120,ColorPicker.R,ColorPicker.G,ColorPicker.B)), ph1, ph2);
                         }
                         else
-                            g.DrawLine(pBlue, ph1, ph2);
+                            g.DrawLine(new Pen(Color.FromArgb(255,ColorPicker.R,ColorPicker.G,ColorPicker.B)), ph1, ph2);
                         ph1 = ph2;
                     }
                     if (previewPoint && i == foundP)//preview color, temporary
@@ -129,8 +131,29 @@ namespace HermiteDraw
             {
                 previewTPoint = false;
                 PointF mouse = new PointF(e.X, e.Y);
-                for (int i = 0; i < pointP.Count; i++)
+                for (int i = 0; i < pointP.Count-1; i++)
                 {
+                    if(pickingLine)
+                    {
+                        double a = 0;
+                        double b = 1;
+                        double h = (b - a) / 100;
+                        double t = a;
+                        PointF ph1, ph2;
+                        ph1 = HermitePoint(t, pointP[i], pointP[i+1], pointT[i], pointT[i+1]);
+                        while (t < b)
+                        {
+                            t += h;
+                            ph2 = HermitePoint(t, pointP[i], pointP[i+1], pointT[i], pointT[i+1]);
+                            if (Find(ph1, mouse, 5))
+                            {
+                                
+                            }
+                            ph1 = ph2;
+                        }
+                    }
+
+
                     if (Find(pointP[i], mouse, 5))//checks if user clicked on a P point
                     {
                         found = 1;
@@ -241,6 +264,12 @@ namespace HermiteDraw
             pointT.Add(new PointF());
             foundP = pointP.Count - 1;
             
+        }
+
+        bool pickingLine;
+        private void LinePicker_Click(object sender, RoutedEventArgs e)
+        {
+            pickingLine = true;
         }
     }
 
