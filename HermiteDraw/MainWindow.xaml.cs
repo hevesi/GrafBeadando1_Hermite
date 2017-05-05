@@ -39,9 +39,11 @@ namespace HermiteDraw
 
         public MainWindow()
         {
+            
             pointP = new List<PointF>();
             pointT = new List<PointF>();
             InitializeComponent();
+            ColorPicker.R = 0; ColorPicker.G = 0; ColorPicker.B = 255;
             draw = false;
            
 
@@ -51,13 +53,13 @@ namespace HermiteDraw
         private void Canvas_Paint(object sender, PaintEventArgs e)
         {
 
-            //TODO: vonalakat átlehessen kötni másik ponthoz. a módosítandó pontok legyenek mindig preview színűek.
             //TODO: második kattintásra a T pont mozgatása. DONE
             //TODO: színválasztó implementálása.DONE
             //TODO: zoom
             //TODO: vonalakra lehessen duplán kattintani. legyen egyértelmű hogy kivan jelölve. színváltoztatás, vastagság állítása(görgővel is).
             //TODO: pontok törlése.
             //TODO: save-load.
+            //geciszarul néz ki
             g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
@@ -84,9 +86,13 @@ namespace HermiteDraw
                     {
                         t += h;
                         ph2 = HermitePoint(t, pointP[i - 1], pointP[i], pointT[i - 1], pointT[i]);
-                        if(previewPoint && i==foundP)
+                        if(previewPoint && i==foundP) //more transparent lines when previewing, moving a point.
                         {
                             g.DrawLine(new Pen(Color.FromArgb(120,ColorPicker.R,ColorPicker.G,ColorPicker.B)), ph1, ph2);
+                        }
+                        else if(pickingLine && i==foundP+1)//making a line more thick when clicking on it
+                        {
+                            g.DrawLine(new Pen(Color.FromArgb(255, ColorPicker.R, ColorPicker.G, ColorPicker.B), 4), ph1, ph2);
                         }
                         else
                             g.DrawLine(new Pen(Color.FromArgb(255,ColorPicker.R,ColorPicker.G,ColorPicker.B)), ph1, ph2);
@@ -126,11 +132,15 @@ namespace HermiteDraw
         //index of T in the list
         private void Canvas_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-
-            if (!previewPoint)
+            if(e.Button == MouseButtons.Right)  //opening context menu
+                winFormHost.ContextMenu.IsOpen = true;
+            else if (!previewPoint)
             {
                 previewTPoint = false;
+                foundP = -1;
                 PointF mouse = new PointF(e.X, e.Y);
+
+
                 for (int i = 0; i < pointP.Count-1; i++)
                 {
                     if(pickingLine)
@@ -147,10 +157,16 @@ namespace HermiteDraw
                             ph2 = HermitePoint(t, pointP[i], pointP[i+1], pointT[i], pointT[i+1]);
                             if (Find(ph1, mouse, 5))
                             {
+                                foundP = i;
+                                break;
                                 
                             }
+
+                            
                             ph1 = ph2;
                         }
+                       
+                        
                     }
 
 
@@ -159,6 +175,7 @@ namespace HermiteDraw
                         found = 1;
                         foundP = i;
                         previewPoint = true;
+                        pickingLine = false;
                         break;
                     }
                     else if (Find(pointT[i], mouse, 5))//checks if user clicked on a T point
@@ -166,6 +183,7 @@ namespace HermiteDraw
                         found = 2;
                         foundT = i;
                         previewPoint = true;
+                        pickingLine = false;
                         break;
                     }
                 }
@@ -205,10 +223,16 @@ namespace HermiteDraw
 
         private void Canvas_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            found = -1;
-            foundP = -1;
-            foundT =- 1;
-            previewPoint = false;
+            if (!pickingLine)
+            {
+                found = -1;
+                foundP = -1;
+                foundT = -1;
+                previewPoint = false;
+            }
+            
+            
+            
 
             if (pointP.Count == 1 && !previewTPoint)//this automatically creates a second T and P point after finalizing the first points, without having to press the add the button.
             {
@@ -253,6 +277,14 @@ namespace HermiteDraw
                 (float)(H0(t) * p0.Y + H1(t) * p1.Y + H2(t) * t0.Y + H3(t) * t1.Y));
         }
 
+        void DeleteCurve(int indexOfPToDelete)
+        {
+            pointP.RemoveAt(indexOfPToDelete);
+            pointT.RemoveAt(indexOfPToDelete);
+            pickingLine = false;
+            Canvas.Refresh();
+        }
+
         bool previewPoint = false;
         bool previewTPoint = false;
         private void HermiteButton_Click(object sender, RoutedEventArgs e)
@@ -263,13 +295,42 @@ namespace HermiteDraw
             pointP.Add(new PointF());
             pointT.Add(new PointF());
             foundP = pointP.Count - 1;
+            pickingLine = false;
             
         }
 
         bool pickingLine;
         private void LinePicker_Click(object sender, RoutedEventArgs e)
         {
-            pickingLine = true;
+            if (pickingLine) pickingLine = false;
+            else
+                pickingLine = true;
+            
+            
+        }
+
+        private void WindowsFormsHost_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (foundP!= -1 && pickingLine && e.Key == Key.Delete)
+            {
+                DeleteCurve(foundP+1);
+                foundP = -1;
+            }
+        }
+
+        private void conMenu_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (foundP == -1 && !pickingLine)
+            {
+                conMenuDelete.IsEnabled = false;
+            }
+            else conMenuDelete.IsEnabled = true;
+        }
+
+        private void conMenuDelete_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteCurve(foundP + 1);
+            foundP = -1;
         }
     }
 
