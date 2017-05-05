@@ -26,13 +26,20 @@
         <Border BorderBrush="Black" BorderThickness="3">
             <WindowsFormsHost Name="winFormHost" KeyDown="WindowsFormsHost_KeyDown">
                 <wf:PictureBox x:Name="Canvas" Paint="Canvas_Paint" MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp"
-                              >
+                             MouseWheel="Canvas_MouseWheel" >
                 </wf:PictureBox>
+                
                 <WindowsFormsHost.ContextMenu>
-                    <ContextMenu Name="conMenu" ContextMenuOpening="conMenu_ContextMenuOpening" >
-                        <MenuItem Name="conMenuDelete" Header="_Test1" Click="conMenuDelete_Click" />
+                    <ContextMenu Name="conMenu"  ContextMenuOpening="conMenu_ContextMenuOpening" >
+                        <MenuItem Name="menuDeleteCurve" Header="Delete curve" Click="conMenuDelete_Click" />
+                        <MenuItem Name="menuDeletePoint" Header="Delete point" Click="menuDeletePoint_Click"/>
+                        <Separator/>
+                        <MenuItem Name="menuMoreThick" Header="Make selected curve thicker" Click="menuMoreThick_Click"/>
+                        <MenuItem Name="menuLessThick" Header="Make selected curve thinner" Click="menuLessThick_Click"/>
                     </ContextMenu>
                 </WindowsFormsHost.ContextMenu>
+                    
+                    
             </WindowsFormsHost>
 
         </Border>
