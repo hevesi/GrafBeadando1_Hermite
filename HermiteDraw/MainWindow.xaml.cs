@@ -26,6 +26,7 @@ namespace HermiteDraw
 
         List<PointF> pointP;
         List<PointF> pointT;
+        List<float> thickness;
         bool draw;
 
         Pen previewPBlue = new Pen(Color.FromArgb(120,37,24,209));
@@ -37,11 +38,16 @@ namespace HermiteDraw
         Brush previewBGreen = new SolidBrush(Color.FromArgb(120, 0, 255, 0));
         Brush green = new SolidBrush(Color.Green);
 
+        
+
         public MainWindow()
         {
+            
             pointP = new List<PointF>();
             pointT = new List<PointF>();
+            thickness = new List<float>();
             InitializeComponent();
+            ColorPicker.R = 0; ColorPicker.G = 0; ColorPicker.B = 255;
             draw = false;
            
 
@@ -51,13 +57,14 @@ namespace HermiteDraw
         private void Canvas_Paint(object sender, PaintEventArgs e)
         {
 
-            //TODO: vonalakat átlehessen kötni másik ponthoz. a módosítandó pontok legyenek mindig preview színűek.
             //TODO: második kattintásra a T pont mozgatása. DONE
             //TODO: színválasztó implementálása.DONE
             //TODO: zoom
             //TODO: vonalakra lehessen duplán kattintani. legyen egyértelmű hogy kivan jelölve. színváltoztatás, vastagság állítása(görgővel is).
-            //TODO: pontok törlése.
+            //TODO: contextmenu canvason néhol bugos. színválasztás.
+            //TODO: pontok törlése. DONE
             //TODO: save-load.
+            //geciszarul néz ki
             g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
@@ -84,16 +91,24 @@ namespace HermiteDraw
                     {
                         t += h;
                         ph2 = HermitePoint(t, pointP[i - 1], pointP[i], pointT[i - 1], pointT[i]);
-                        if(previewPoint && i==foundP)
+                        if(previewPoint && i==foundP) //more transparent lines when previewing, moving a point.
                         {
-                            g.DrawLine(new Pen(Color.FromArgb(120,ColorPicker.R,ColorPicker.G,ColorPicker.B)), ph1, ph2);
+                            g.DrawLine(new Pen(Color.FromArgb(120,ColorPicker.R,ColorPicker.G,ColorPicker.B),thickness[i-1]), ph1, ph2);
+                        }
+                        else if(pickingLine && i==foundP+1)//making a line more thick when clicking on it
+                        {
+                            g.DrawLine(new Pen(Color.FromArgb(255, ColorPicker.R, ColorPicker.G, ColorPicker.B),thickness[i-1]+2), ph1, ph2);
                         }
                         else if(pickingLine && i==foundP)
                         {
                             g.DrawLine(new Pen(Color.FromArgb(255, ColorPicker.R, ColorPicker.G, ColorPicker.B), 4), ph1, ph2);
                         }
                         else
+<<<<<<< HEAD
                             g.DrawLine(new Pen(Color.FromArgb(255,ColorPicker.R,ColorPicker.G,ColorPicker.B),4), ph1, ph2);
+=======
+                            g.DrawLine(new Pen(Color.FromArgb(255,ColorPicker.R,ColorPicker.G,ColorPicker.B),thickness[i-1]), ph1, ph2);
+>>>>>>> origin/master
                         ph1 = ph2;
                     }
               
@@ -119,47 +134,87 @@ namespace HermiteDraw
         //index of T in the list
         private void Canvas_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            PointF mouse = new PointF(e.X, e.Y);
+            if (e.Button == MouseButtons.Right)  //opening context menu
+            {
+                winFormHost.ContextMenu.IsOpen = true;
+                for (int i = 0; i < pointP.Count; i++)
+                {
 
-            if (!previewPoint)
+                    if (Find(pointP[i], mouse, 5) || Find(pointT[i],mouse,5))//checks if user clicked on a point with right click
+                    {
+                        found = 3;
+                        foundP = i;
+                        pickingLine = false;
+                        if (e.Button == MouseButtons.Right)
+                            conMenu.IsEnabled = true;
+                        break;
+
+                    }
+                }
+            }
+                
+            else if (!previewPoint)
             {
                 previewTPoint = false;
-                PointF mouse = new PointF(e.X, e.Y);
-                for (int i = 0; i < pointP.Count-1; i++)
+                foundP = -1;
+
+                for(int i=0;i<pointP.Count-1;i++) //when the user wants to highlight a curve, this checks which curve is that
                 {
-                    if(pickingLine)
+                    if (pickingLine) 
                     {
                         double a = 0;
                         double b = 1;
                         double h = (b - a) / 100;
                         double t = a;
                         PointF ph1, ph2;
-                        ph1 = HermitePoint(t, pointP[i], pointP[i+1], pointT[i], pointT[i+1]);
+                        ph1 = HermitePoint(t, pointP[i], pointP[i + 1], pointT[i], pointT[i + 1]);
                         while (t < b)
                         {
                             t += h;
-                            ph2 = HermitePoint(t, pointP[i], pointP[i+1], pointT[i], pointT[i+1]);
+                            ph2 = HermitePoint(t, pointP[i], pointP[i + 1], pointT[i], pointT[i + 1]);
                             if (Find(ph1, mouse, 5))
                             {
+<<<<<<< HEAD
                                 foundP = i+1;
                                 break;
+=======
+                                foundP = i;
+                                break;
+
+>>>>>>> origin/master
                             }
+
+
                             ph1 = ph2;
                         }
+
+
                     }
+                }
 
-
+                for (int i = 0; i < pointP.Count; i++)
+                {
+                   
                     if (Find(pointP[i], mouse, 5))//checks if user clicked on a P point
                     {
                         found = 1;
                         foundP = i;
                         previewPoint = true;
-                        break;
+                        pickingLine = false;
+                        if (e.Button == MouseButtons.Right)
+                            conMenu.IsEnabled = true;
+                            break;
+                        
                     }
                     else if (Find(pointT[i], mouse, 5))//checks if user clicked on a T point
                     {
                         found = 2;
                         foundT = i;
                         previewPoint = true;
+                        pickingLine = false;
+                        if (e.Button == MouseButtons.Right)
+                            conMenu.IsEnabled = true;
                         break;
                     }
                 }
@@ -182,6 +237,7 @@ namespace HermiteDraw
                 pointT[foundT] = mouse;
             }
           
+            //previewing    
            else if(previewPoint)
             {
                 PointF mouse = new PointF(e.X, e.Y);
@@ -199,10 +255,16 @@ namespace HermiteDraw
 
         private void Canvas_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            found = -1;
-            foundP = -1;
-            foundT =- 1;
-            previewPoint = false;
+            if (!pickingLine && e.Button != MouseButtons.Right)
+            {
+                found = -1;
+                foundP = -1;
+                foundT = -1;
+                previewPoint = false;
+            }
+            
+            
+            
 
             if (pointP.Count == 1 && !previewTPoint)//this automatically creates a second T and P point after finalizing the first points, without having to press the add the button.
             {
@@ -210,6 +272,7 @@ namespace HermiteDraw
                 previewTPoint = true;
                 pointP.Add(new PointF());
                 pointT.Add(new PointF());
+                thickness.Add(1);
                 foundP = pointP.Count - 1;
 
             }  
@@ -247,6 +310,14 @@ namespace HermiteDraw
                 (float)(H0(t) * p0.Y + H1(t) * p1.Y + H2(t) * t0.Y + H3(t) * t1.Y));
         }
 
+        void DeleteCurve(int indexOfPToDelete)
+        {
+            pointP.RemoveAt(indexOfPToDelete);
+            pointT.RemoveAt(indexOfPToDelete);
+            pickingLine = false;
+            Canvas.Refresh();
+        }
+
         bool previewPoint = false;
         bool previewTPoint = false;
         private void HermiteButton_Click(object sender, RoutedEventArgs e)
@@ -256,14 +327,93 @@ namespace HermiteDraw
             draw = true;
             pointP.Add(new PointF());
             pointT.Add(new PointF());
+            thickness.Add(1);
             foundP = pointP.Count - 1;
+            pickingLine = false;
             
         }
 
         bool pickingLine;
         private void LinePicker_Click(object sender, RoutedEventArgs e)
         {
-            pickingLine = true;
+            if (pickingLine) pickingLine = false;
+            else
+                pickingLine = true;
+            
+            
+        }
+
+        private void WindowsFormsHost_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (foundP!= -1 && pickingLine && e.Key == Key.Delete)
+            {
+                DeleteCurve(foundP+1);
+                foundP = -1;
+            }
+        }
+
+        private void conMenu_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (foundP == -1 && !pickingLine)
+            {
+                menuDeleteCurve.IsEnabled = false;
+                menuMoreThick.IsEnabled = false;
+                menuLessThick.IsEnabled = false;
+            }
+            else
+            {
+                menuDeleteCurve.IsEnabled = true;
+                menuMoreThick.IsEnabled = true;
+                menuLessThick.IsEnabled = true;
+            }
+
+            if (found == 3)
+            {
+                menuDeletePoint.IsEnabled = true;
+            }
+            else menuDeletePoint.IsEnabled = false;
+
+
+        }
+
+        private void conMenuDelete_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteCurve(foundP + 1);
+            foundP = -1;
+        }
+
+        private void menuDeletePoint_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteCurve(foundP);
+            foundP = -1;
+        }
+
+        private void Canvas_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if(pickingLine && foundP!=-1 && e.Delta>0 && thickness[foundP]<=10 )
+            {
+                thickness[foundP] += (float)0.25;
+                
+                Canvas.Refresh();
+            }
+            else if(pickingLine && foundP!=-1 && e.Delta<0 && thickness[foundP]>=0.5)
+            {
+                thickness[foundP] -= (float)0.25;
+                Canvas.Refresh();
+            }
+        }
+
+        private void menuMoreThick_Click(object sender, RoutedEventArgs e)
+        {
+            if(thickness[foundP] <10)
+                thickness[foundP] += 1;
+        }
+
+        private void menuLessThick_Click(object sender, RoutedEventArgs e)
+        {
+            if (thickness[foundP] > 1)
+                thickness[foundP] -= 1;
+            else thickness[foundP] = (float)0.25;
         }
     }
 
