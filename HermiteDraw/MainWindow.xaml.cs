@@ -88,21 +88,15 @@ namespace HermiteDraw
                         {
                             g.DrawLine(new Pen(Color.FromArgb(120,ColorPicker.R,ColorPicker.G,ColorPicker.B)), ph1, ph2);
                         }
+                        else if(pickingLine && i==foundP)
+                        {
+                            g.DrawLine(new Pen(Color.FromArgb(255, ColorPicker.R, ColorPicker.G, ColorPicker.B), 4), ph1, ph2);
+                        }
                         else
-                            g.DrawLine(new Pen(Color.FromArgb(255,ColorPicker.R,ColorPicker.G,ColorPicker.B)), ph1, ph2);
+                            g.DrawLine(new Pen(Color.FromArgb(255,ColorPicker.R,ColorPicker.G,ColorPicker.B),4), ph1, ph2);
                         ph1 = ph2;
                     }
-                    if (previewPoint && i == foundP)//preview color, temporary
-                    {
-                        g.DrawLine(previewPRed, pointP[i - 1], pointT[i - 1]);
-                        g.DrawLine(previewPRed, pointP[i], pointT[i]);
-                        g.FillRectangle(previewBRed, pointP[i - 1].X - 3, pointP[i - 1].Y - 3, 6, 6);
-                        g.FillRectangle(previewBRed, pointP[i].X - 3, pointP[i].Y - 3, 6, 6);
-                        g.FillRectangle(previewBGreen, pointT[i - 1].X - 3, pointT[i - 1].Y - 3, 6, 6);
-                        g.FillRectangle(previewBGreen, pointT[i].X - 3, pointT[i].Y - 3, 6, 6);
-                    }
-                    else
-                    {
+              
 
                         g.DrawLine(pRed, pointP[i - 1], pointT[i - 1]);
                         g.DrawLine(pRed, pointP[i], pointT[i]);
@@ -110,7 +104,6 @@ namespace HermiteDraw
                         g.FillRectangle(red, pointP[i].X - 3, pointP[i].Y - 3, 6, 6);
                         g.FillRectangle(green, pointT[i - 1].X - 3, pointT[i - 1].Y - 3, 6, 6);
                         g.FillRectangle(green, pointT[i].X - 3, pointT[i].Y - 3, 6, 6);
-                    }
                 }
             }
             
@@ -147,7 +140,8 @@ namespace HermiteDraw
                             ph2 = HermitePoint(t, pointP[i], pointP[i+1], pointT[i], pointT[i+1]);
                             if (Find(ph1, mouse, 5))
                             {
-                                
+                                foundP = i+1;
+                                break;
                             }
                             ph1 = ph2;
                         }
