@@ -20,16 +20,36 @@ namespace HermiteDraw
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    class myColor
+    {
+        byte _R;
+        public byte R { get { return _R; } set { _R = value; } }
+
+        byte _G;
+        public byte G { get { return _G; } set { _G = value; } }
+
+        byte _B;
+        public byte B { get { return _B; } set { _B = value; } }
+
+        public myColor(byte r, byte g, byte b)
+        {
+            R = r;
+            G = g;
+            B = b;
+        }
+    }
+
     public partial class MainWindow : Window
     {
-      //  PointF p0, t0, p1, t1;
+        //  PointF p0, t0, p1, t1;
 
         List<PointF> pointP;
         List<PointF> pointT;
         List<float> thickness;
+        List<myColor> colors;
         bool draw;
 
-        Pen previewPBlue = new Pen(Color.FromArgb(120,37,24,209));
+        Pen previewPBlue = new Pen(Color.FromArgb(120, 37, 24, 209));
         Pen pBlue = new Pen(Color.FromArgb(255, 37, 24, 209));
         Pen previewPRed = new Pen(Color.FromArgb(120, 255, 0, 0));
         Pen pRed = new Pen(Color.Red);
@@ -38,18 +58,21 @@ namespace HermiteDraw
         Brush previewBGreen = new SolidBrush(Color.FromArgb(120, 0, 255, 0));
         Brush green = new SolidBrush(Color.Green);
 
-        
+
 
         public MainWindow()
         {
-            
+
             pointP = new List<PointF>();
             pointT = new List<PointF>();
             thickness = new List<float>();
+            colors = new List<myColor>();
+
+            selectedLines = new List<int>();
             InitializeComponent();
             ColorPicker.R = 0; ColorPicker.G = 0; ColorPicker.B = 255;
             draw = false;
-           
+
 
         }
         Graphics g;
@@ -64,11 +87,12 @@ namespace HermiteDraw
             //TODO: contextmenu canvason néhol bugos. színválasztás.
             //TODO: pontok törlése. DONE
             //TODO: save-load.
+            //TODO több pont kijelölése DONE
             //geciszarul néz ki
             g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-            if(draw && pointP.Count==1)
+            if (draw && pointP.Count == 1)
             {
                 g.DrawLine(pRed, pointP[0], pointT[0]);
                 g.FillRectangle(red, pointP[0].X - 3, pointP[0].Y - 3, 6, 6);
@@ -76,52 +100,46 @@ namespace HermiteDraw
 
             }
 
-            if(draw)
+            if (draw)
             {
                 for (int i = 1; i < pointP.Count; i++)
                 {
-                    
+
                     double a = 0;
                     double b = 1;
                     double h = (b - a) / 100;
                     double t = a;
                     PointF ph1, ph2;
-                    ph1 = HermitePoint(t,pointP[i-1],pointP[i],pointT[i-1],pointT[i]);
+                    ph1 = HermitePoint(t, pointP[i - 1], pointP[i], pointT[i - 1], pointT[i]);
                     while (t < b)
                     {
                         t += h;
                         ph2 = HermitePoint(t, pointP[i - 1], pointP[i], pointT[i - 1], pointT[i]);
-                        if(previewPoint && i==foundP) //more transparent lines when previewing, moving a point.
+                        if (previewPoint && i == foundP) //more transparent curve when previewing, moving a point.
                         {
-                            g.DrawLine(new Pen(Color.FromArgb(120,ColorPicker.R,ColorPicker.G,ColorPicker.B),thickness[i-1]), ph1, ph2);
+                            g.DrawLine(new Pen(Color.FromArgb(120, colors[i-1].R,colors[i-1].G,colors[i-1].B), thickness[i - 1]), ph1, ph2);
                         }
-                        else if(pickingLine && i==foundP+1)//making a line more thick when clicking on it
+                        else if (pickingLine && selectedLines.Contains(i-1))//making a curve thicker when clicking on it
                         {
-                            g.DrawLine(new Pen(Color.FromArgb(255, ColorPicker.R, ColorPicker.G, ColorPicker.B),thickness[i-1]+2), ph1, ph2);
+                            g.DrawLine(new Pen(Color.FromArgb(255, colors[i - 1].R, colors[i - 1].G, colors[i - 1].B), thickness[i - 1] + 2), ph1, ph2);
                         }
-                        else if(pickingLine && i==foundP)
-                        {
-                            g.DrawLine(new Pen(Color.FromArgb(255, ColorPicker.R, ColorPicker.G, ColorPicker.B), 4), ph1, ph2);
-                        }
-                        else
-<<<<<<< HEAD
-                            g.DrawLine(new Pen(Color.FromArgb(255,ColorPicker.R,ColorPicker.G,ColorPicker.B),4), ph1, ph2);
-=======
-                            g.DrawLine(new Pen(Color.FromArgb(255,ColorPicker.R,ColorPicker.G,ColorPicker.B),thickness[i-1]), ph1, ph2);
->>>>>>> origin/master
+                        else //drawing the line
+                            g.DrawLine(new Pen(Color.FromArgb(255, colors[i - 1].R, colors[i - 1].G, colors[i - 1].B), thickness[i-1]), ph1, ph2);
+                        
+
                         ph1 = ph2;
                     }
-              
 
-                        g.DrawLine(pRed, pointP[i - 1], pointT[i - 1]);
-                        g.DrawLine(pRed, pointP[i], pointT[i]);
-                        g.FillRectangle(red, pointP[i - 1].X - 3, pointP[i - 1].Y - 3, 6, 6);
-                        g.FillRectangle(red, pointP[i].X - 3, pointP[i].Y - 3, 6, 6);
-                        g.FillRectangle(green, pointT[i - 1].X - 3, pointT[i - 1].Y - 3, 6, 6);
-                        g.FillRectangle(green, pointT[i].X - 3, pointT[i].Y - 3, 6, 6);
+
+                    g.DrawLine(pRed, pointP[i - 1], pointT[i - 1]);
+                    g.DrawLine(pRed, pointP[i], pointT[i]);
+                    g.FillRectangle(red, pointP[i - 1].X - 3, pointP[i - 1].Y - 3, 6, 6);
+                    g.FillRectangle(red, pointP[i].X - 3, pointP[i].Y - 3, 6, 6);
+                    g.FillRectangle(green, pointT[i - 1].X - 3, pointT[i - 1].Y - 3, 6, 6);
+                    g.FillRectangle(green, pointT[i].X - 3, pointT[i].Y - 3, 6, 6);
                 }
             }
-            
+
         }
 
         int found = -1;
@@ -132,6 +150,7 @@ namespace HermiteDraw
         //Index of P in the List
         int foundT = -1;
         //index of T in the list
+        List<int> selectedLines;
         private void Canvas_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             PointF mouse = new PointF(e.X, e.Y);
@@ -141,7 +160,7 @@ namespace HermiteDraw
                 for (int i = 0; i < pointP.Count; i++)
                 {
 
-                    if (Find(pointP[i], mouse, 5) || Find(pointT[i],mouse,5))//checks if user clicked on a point with right click
+                    if (Find(pointP[i], mouse, 5) || Find(pointT[i], mouse, 5))//checks if user clicked on a point with right click
                     {
                         found = 3;
                         foundP = i;
@@ -153,15 +172,17 @@ namespace HermiteDraw
                     }
                 }
             }
-                
+
             else if (!previewPoint)
             {
                 previewTPoint = false;
                 foundP = -1;
 
-                for(int i=0;i<pointP.Count-1;i++) //when the user wants to highlight a curve, this checks which curve is that
+                bool foundCurve = false;
+
+                for (int i = 0; i < pointP.Count - 1; i++) //when the user wants to highlight a curve, this checks which curve is that
                 {
-                    if (pickingLine) 
+                    if (pickingLine)
                     {
                         double a = 0;
                         double b = 1;
@@ -175,27 +196,26 @@ namespace HermiteDraw
                             ph2 = HermitePoint(t, pointP[i], pointP[i + 1], pointT[i], pointT[i + 1]);
                             if (Find(ph1, mouse, 5))
                             {
-<<<<<<< HEAD
-                                foundP = i+1;
+                                if (selectedLines.Contains(i))
+                                    selectedLines.Remove(i);
+                                else
+                                    selectedLines.Add(i);
+                                foundCurve = true;
                                 break;
-=======
-                                foundP = i;
-                                break;
-
->>>>>>> origin/master
                             }
 
 
                             ph1 = ph2;
                         }
 
-
                     }
                 }
+                if (!foundCurve)
+                    selectedLines.Clear();
 
                 for (int i = 0; i < pointP.Count; i++)
                 {
-                   
+
                     if (Find(pointP[i], mouse, 5))//checks if user clicked on a P point
                     {
                         found = 1;
@@ -204,8 +224,8 @@ namespace HermiteDraw
                         pickingLine = false;
                         if (e.Button == MouseButtons.Right)
                             conMenu.IsEnabled = true;
-                            break;
-                        
+                        break;
+
                     }
                     else if (Find(pointT[i], mouse, 5))//checks if user clicked on a T point
                     {
@@ -217,10 +237,11 @@ namespace HermiteDraw
                             conMenu.IsEnabled = true;
                         break;
                     }
+                    
                 }
             }
-            
-           
+
+
         }
 
         private void Canvas_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -231,27 +252,27 @@ namespace HermiteDraw
                 PointF mouse = new PointF(e.X, e.Y);
                 pointP[foundP] = mouse;
             }
-            else if(found==2)
+            else if (found == 2)
             {
                 PointF mouse = new PointF(e.X, e.Y);
                 pointT[foundT] = mouse;
             }
-          
+
             //previewing    
-           else if(previewPoint)
+            else if (previewPoint)
             {
                 PointF mouse = new PointF(e.X, e.Y);
                 pointP[pointP.Count - 1] = mouse;
                 pointT[pointT.Count - 1] = new PointF(mouse.X - 30, mouse.Y - 30);
             }
-            else if(previewTPoint && !previewPoint )
+            else if (previewTPoint && !previewPoint)
             {
                 PointF mouse = new PointF(e.X, e.Y);
                 pointT[pointT.Count - 1] = mouse;
             }
-                Canvas.Refresh();
-            }
-        
+            Canvas.Refresh();
+        }
+
 
         private void Canvas_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
@@ -261,10 +282,12 @@ namespace HermiteDraw
                 foundP = -1;
                 foundT = -1;
                 previewPoint = false;
+                pickingLine = false;
+                selectedLines.Clear();
             }
-            
-            
-            
+
+
+
 
             if (pointP.Count == 1 && !previewTPoint)//this automatically creates a second T and P point after finalizing the first points, without having to press the add the button.
             {
@@ -275,7 +298,7 @@ namespace HermiteDraw
                 thickness.Add(1);
                 foundP = pointP.Count - 1;
 
-            }  
+            }
         }
 
 
@@ -328,9 +351,10 @@ namespace HermiteDraw
             pointP.Add(new PointF());
             pointT.Add(new PointF());
             thickness.Add(1);
+            colors.Add(new myColor(ColorPicker.R, ColorPicker.G, ColorPicker.B));
             foundP = pointP.Count - 1;
             pickingLine = false;
-            
+
         }
 
         bool pickingLine;
@@ -339,15 +363,15 @@ namespace HermiteDraw
             if (pickingLine) pickingLine = false;
             else
                 pickingLine = true;
-            
-            
+
+
         }
 
         private void WindowsFormsHost_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (foundP!= -1 && pickingLine && e.Key == Key.Delete)
+            if (foundP != -1 && pickingLine && e.Key == Key.Delete)
             {
-                DeleteCurve(foundP+1);
+                DeleteCurve(foundP + 1);
                 foundP = -1;
             }
         }
@@ -390,13 +414,13 @@ namespace HermiteDraw
 
         private void Canvas_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            if(pickingLine && foundP!=-1 && e.Delta>0 && thickness[foundP]<=10 )
+            if (pickingLine && foundP != -1 && e.Delta > 0 && thickness[foundP] <= 10)
             {
                 thickness[foundP] += (float)0.25;
-                
+
                 Canvas.Refresh();
             }
-            else if(pickingLine && foundP!=-1 && e.Delta<0 && thickness[foundP]>=0.5)
+            else if (pickingLine && foundP != -1 && e.Delta < 0 && thickness[foundP] >= 0.5)
             {
                 thickness[foundP] -= (float)0.25;
                 Canvas.Refresh();
@@ -405,8 +429,9 @@ namespace HermiteDraw
 
         private void menuMoreThick_Click(object sender, RoutedEventArgs e)
         {
-            if(thickness[foundP] <10)
+            if (thickness[foundP] < 10)
                 thickness[foundP] += 1;
+            Canvas.Refresh();
         }
 
         private void menuLessThick_Click(object sender, RoutedEventArgs e)
@@ -414,8 +439,23 @@ namespace HermiteDraw
             if (thickness[foundP] > 1)
                 thickness[foundP] -= 1;
             else thickness[foundP] = (float)0.25;
+            Canvas.Refresh();
+        }
+
+        private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if(selectedLines.Count >0)
+            {
+                for (int i = 0; i < selectedLines.Count; i++)
+                {
+                    colors[selectedLines[i]].R = ColorPicker.R;
+                    colors[selectedLines[i]].G = ColorPicker.G;
+                    colors[selectedLines[i]].B = ColorPicker.B;
+                }
+                Canvas.Refresh();
+            }
         }
     }
 
-    
+
 }

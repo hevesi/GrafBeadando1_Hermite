@@ -16,7 +16,7 @@
         </Menu>
         <StackPanel DockPanel.Dock="Left" Width="230">
             <Button x:Name="HermiteButton"  Height="30" Click="HermiteButton_Click"></Button>
-            <xctk:ColorCanvas Name="ColorPicker" ></xctk:ColorCanvas>
+            <xctk:ColorCanvas Name="ColorPicker" SelectedColorChanged="ColorPicker_SelectedColorChanged" ></xctk:ColorCanvas>
             <Button x:Name="LinePicker" Click="LinePicker_Click" Height="30">
             </Button>
          
