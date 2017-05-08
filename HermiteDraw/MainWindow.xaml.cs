@@ -212,7 +212,6 @@ namespace HermiteDraw
                 }
                 if (!foundCurve)
                     selectedLines.Clear();
-
                 for (int i = 0; i < pointP.Count; i++)
                 {
 
@@ -239,8 +238,13 @@ namespace HermiteDraw
                     }
                     
                 }
+                
             }
-
+            if(isCtrl)
+            {
+                HermiteButton_Click(sender, new RoutedEventArgs());
+                
+            }
 
         }
 
@@ -276,7 +280,7 @@ namespace HermiteDraw
 
         private void Canvas_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            if (!pickingLine && e.Button != MouseButtons.Right)
+            if (!pickingLine && !isCtrl && e.Button != MouseButtons.Right)
             {
                 found = -1;
                 foundP = -1;
@@ -285,9 +289,6 @@ namespace HermiteDraw
                 pickingLine = false;
                 selectedLines.Clear();
             }
-
-
-
 
             if (pointP.Count == 1 && !previewTPoint)//this automatically creates a second T and P point after finalizing the first points, without having to press the add the button.
             {
@@ -299,6 +300,7 @@ namespace HermiteDraw
                 foundP = pointP.Count - 1;
 
             }
+           
         }
 
 
@@ -337,6 +339,8 @@ namespace HermiteDraw
         {
             pointP.RemoveAt(indexOfPToDelete);
             pointT.RemoveAt(indexOfPToDelete);
+            thickness.RemoveAt(indexOfPToDelete);
+            colors.RemoveAt(indexOfPToDelete);
             pickingLine = false;
             Canvas.Refresh();
         }
@@ -367,6 +371,7 @@ namespace HermiteDraw
 
         }
 
+        bool isCtrl = false;
         private void WindowsFormsHost_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (foundP != -1 && pickingLine && e.Key == Key.Delete)
@@ -374,6 +379,13 @@ namespace HermiteDraw
                 DeleteCurve(foundP + 1);
                 foundP = -1;
             }
+            if (e.Key == Key.LeftCtrl)
+                isCtrl = true;
+        }
+        private void winFormHost_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.LeftCtrl)
+                isCtrl = false;
         }
 
         private void conMenu_ContextMenuOpening(object sender, ContextMenuEventArgs e)

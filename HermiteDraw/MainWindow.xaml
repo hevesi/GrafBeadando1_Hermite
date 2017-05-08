@@ -24,7 +24,7 @@
 
 
         <Border BorderBrush="Black" BorderThickness="3">
-            <WindowsFormsHost Name="winFormHost" KeyDown="WindowsFormsHost_KeyDown">
+            <WindowsFormsHost Name="winFormHost" KeyDown="WindowsFormsHost_KeyDown" KeyUp="winFormHost_KeyUp">
                 <wf:PictureBox x:Name="Canvas" Paint="Canvas_Paint" MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp"
                              MouseWheel="Canvas_MouseWheel" >
                 </wf:PictureBox>
