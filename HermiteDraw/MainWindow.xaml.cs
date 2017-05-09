@@ -347,6 +347,7 @@ namespace HermiteDraw
 
         bool previewPoint = false;
         bool previewTPoint = false;
+        //adding a hermite curve button
         private void HermiteButton_Click(object sender, RoutedEventArgs e)
         {
             previewPoint = true;
@@ -362,6 +363,7 @@ namespace HermiteDraw
         }
 
         bool pickingLine;
+        //clicking on pick a line button
         private void LinePicker_Click(object sender, RoutedEventArgs e)
         {
             if (pickingLine) pickingLine = false;
@@ -372,6 +374,7 @@ namespace HermiteDraw
         }
 
         bool isCtrl = false;
+        //is the user pressing ctrl (ctrl+click on canvas = placing point
         private void WindowsFormsHost_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (foundP != -1 && pickingLine && e.Key == Key.Delete)
@@ -382,25 +385,23 @@ namespace HermiteDraw
             if (e.Key == Key.LeftCtrl)
                 isCtrl = true;
         }
+
         private void winFormHost_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == Key.LeftCtrl)
                 isCtrl = false;
         }
 
+        //context menu opening
         private void conMenu_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             if (foundP == -1 && !pickingLine)
             {
                 menuDeleteCurve.IsEnabled = false;
-                menuMoreThick.IsEnabled = false;
-                menuLessThick.IsEnabled = false;
             }
             else
             {
                 menuDeleteCurve.IsEnabled = true;
-                menuMoreThick.IsEnabled = true;
-                menuLessThick.IsEnabled = true;
             }
 
             if (found == 3)
@@ -418,42 +419,39 @@ namespace HermiteDraw
             foundP = -1;
         }
 
+        //click on delete point button
         private void menuDeletePoint_Click(object sender, RoutedEventArgs e)
         {
             DeleteCurve(foundP);
             foundP = -1;
         }
 
+        //when the user selected a curve and using mousewheel
         private void Canvas_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            if (pickingLine && foundP != -1 && e.Delta > 0 && thickness[foundP] <= 10)
+            if (e.Delta > 0 && selectedLines.Count>0 )
             {
-                thickness[foundP] += (float)0.25;
+                for(int i =0;i<selectedLines.Count;i++)
+                {
+                    if (thickness[selectedLines[i]] <= 10)
+                        thickness[selectedLines[i]] += (float)0.25;
+                }
 
                 Canvas.Refresh();
             }
-            else if (pickingLine && foundP != -1 && e.Delta < 0 && thickness[foundP] >= 0.5)
+            else if (e.Delta < 0 && selectedLines.Count > 0)
             {
-                thickness[foundP] -= (float)0.25;
+                for (int i = 0; i < selectedLines.Count; i++)
+                {
+                    if (thickness[selectedLines[i]] >= 0.5)
+                        thickness[selectedLines[i]] -= (float)0.25;
+                }
                 Canvas.Refresh();
             }
         }
 
-        private void menuMoreThick_Click(object sender, RoutedEventArgs e)
-        {
-            if (thickness[foundP] < 10)
-                thickness[foundP] += 1;
-            Canvas.Refresh();
-        }
 
-        private void menuLessThick_Click(object sender, RoutedEventArgs e)
-        {
-            if (thickness[foundP] > 1)
-                thickness[foundP] -= 1;
-            else thickness[foundP] = (float)0.25;
-            Canvas.Refresh();
-        }
-
+        //changing color of the selected curves when user changes the color on the colorpicker
         private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
         {
             if(selectedLines.Count >0)
@@ -466,6 +464,114 @@ namespace HermiteDraw
                 }
                 Canvas.Refresh();
             }
+        }
+
+        //saving file
+        private void saveButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Text file | *.txt";
+            saveFileDialog.FileName = "save.txt";
+            saveFileDialog.Title = "Save file";
+            saveFileDialog.ShowDialog();
+
+            if(saveFileDialog.FileName!="")
+            {
+                System.IO.StreamWriter sw = new System.IO.StreamWriter(saveFileDialog.OpenFile());
+
+                sw.WriteLine("pointP");
+                for(int i =0;i<pointP.Count;i++)
+                {
+                    sw.WriteLine(pointP[i].X + " " + pointP[i].Y);
+                }
+                sw.WriteLine("pointT");
+                for(int i=0;i<pointT.Count;i++)
+                {
+                    sw.WriteLine(pointT[i].X + " " + pointT[i].Y);
+                }
+                sw.WriteLine("thickness");
+                for(int i=0;i<thickness.Count;i++)
+                {
+                    sw.WriteLine(thickness[i]);
+                }
+                sw.WriteLine("color");
+                for(int i=0;i<colors.Count;i++)
+                {
+                    sw.WriteLine(colors[i].R + " " + colors[i].G + " " + colors[i].B);
+                }
+                sw.WriteLine("end");
+                sw.Dispose();
+                sw.Close();
+            }
+        }
+        //loading file
+        private void loadButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFD = new OpenFileDialog();
+            openFD.Filter = "Text file | *.txt";
+            openFD.FileName = "save.txt";
+            openFD.Title = "Open file";
+            openFD.ShowDialog();
+
+            if(openFD.FileName!="")
+            {
+                clearButton_Click(sender, e);
+                System.IO.StreamReader sr = new System.IO.StreamReader(openFD.OpenFile());
+
+                List<string> lines = new List<string>();
+                while (!sr.EndOfStream)
+                    lines.Add(sr.ReadLine());
+
+                for(int i=0;i<lines.Count;i++)
+                {
+                    if(lines[i]=="pointP")
+                    {
+                        while(lines[i+1] !="pointT")
+                        {
+                            i++;
+                            string[] temp = lines[i].Split(' ');
+                            pointP.Add(new PointF(Convert.ToInt16(temp[0]), Convert.ToInt16(temp[1])));
+                        }
+                    }
+                    else if(lines[i]=="pointT")
+                    {
+                        while(lines[i+1]!="thickness")
+                        {
+                            i++;
+                            string[] temp = lines[i].Split(' ');
+                            pointT.Add(new PointF(Convert.ToInt16(temp[0]), Convert.ToInt16(temp[1])));
+                        }
+                    }
+                    else if (lines[i] == "thickness")
+                    {
+                        while (lines[i + 1] != "color")
+                        {
+                            i++;
+                            thickness.Add(float.Parse(lines[i]));
+                        }
+                    }
+                    else if (lines[i] == "color")
+                    {
+                        while (lines[i + 1] != "end")
+                        {
+                            i++;
+                            string[] temp = lines[i].Split(' ');
+                            colors.Add(new myColor(Convert.ToByte(temp[0]), Convert.ToByte(temp[1]), Convert.ToByte(temp[2])));
+                        }
+                    }
+                }
+                Canvas.Refresh();
+            }
+        }
+        //clearing canvas
+        private void clearButton_Click(object sender, RoutedEventArgs e)
+        {
+            pointP.Clear();
+            pointT.Clear();
+            thickness.Clear();
+            colors.Clear();
+            pickingLine = false;
+            Canvas.Refresh();
         }
     }
 

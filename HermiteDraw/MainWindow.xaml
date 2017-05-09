@@ -12,14 +12,18 @@
         WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <DockPanel>
         <Menu x:Name="mainMenu" DockPanel.Dock="Top" Height="30">
-            <MenuItem Header="File"></MenuItem>
+            <MenuItem Header="File">
+                <MenuItem Name="saveButton" Header="Save file" Click="saveButton_Click"/>
+                <MenuItem Name="loadButton" Header="Load file" Click="loadButton_Click"/>
+                <MenuItem Name="clearButton" Header="Clear canvas" Click="clearButton_Click"/>
+            </MenuItem>
         </Menu>
         <StackPanel DockPanel.Dock="Left" Width="230">
             <Button x:Name="HermiteButton"  Height="30" Click="HermiteButton_Click"></Button>
             <xctk:ColorCanvas Name="ColorPicker" SelectedColorChanged="ColorPicker_SelectedColorChanged" ></xctk:ColorCanvas>
             <Button x:Name="LinePicker" Click="LinePicker_Click" Height="30">
             </Button>
-         
+
         </StackPanel>
 
 
@@ -28,18 +32,16 @@
                 <wf:PictureBox x:Name="Canvas" Paint="Canvas_Paint" MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp"
                              MouseWheel="Canvas_MouseWheel" >
                 </wf:PictureBox>
-                
+
                 <WindowsFormsHost.ContextMenu>
                     <ContextMenu Name="conMenu"  ContextMenuOpening="conMenu_ContextMenuOpening" >
                         <MenuItem Name="menuDeleteCurve" Header="Delete curve" Click="conMenuDelete_Click" />
                         <MenuItem Name="menuDeletePoint" Header="Delete point" Click="menuDeletePoint_Click"/>
                         <Separator/>
-                        <MenuItem Name="menuMoreThick" Header="Make selected curve thicker" Click="menuMoreThick_Click"/>
-                        <MenuItem Name="menuLessThick" Header="Make selected curve thinner" Click="menuLessThick_Click"/>
                     </ContextMenu>
                 </WindowsFormsHost.ContextMenu>
-                    
-                    
+
+
             </WindowsFormsHost>
 
         </Border>
